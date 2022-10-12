@@ -17,7 +17,7 @@ public class ImdbController {
 	
 	@GetMapping(value = "/250Filmes")
 	public List<Object> get250Filmes() {
-		String url = "https://imdb-api.com/en/API/Top250Movies/k_4qe4eo9s";
+		String url = "https://imdb-api.com/en/API/Top250Movies/<APIKey>";
 		ResponseEntity<String> filmes = restTemplate.getForEntity(url, String.class);
 		System.out.println(Arrays.asList(filmes));
 		return Arrays.asList(filmes);
