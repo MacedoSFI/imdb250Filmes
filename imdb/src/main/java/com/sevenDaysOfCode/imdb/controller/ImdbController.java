@@ -5,24 +5,33 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ImdbController {
 	
-	private ListOfMovies movies = new ListOfMovies(new ArrayList<>());
-	
+    public static final String POST_SUCCESS = "Filme inserido aos favoritos com sucesso!";
+    public static final String POST_FAIL = "Filme não foi encontrado na lista";
+
+    private ListOfMovies movies = new ListOfMovies(new ArrayList<>());
+    private ListOfMovies favoritos = new ListOfMovies(new ArrayList<>());
+    
     @Autowired
     private ImDbApiClient imDbApiClient;
     
     @GetMapping("/top250filmes")
-    public ListOfMovies getTop250Filmes(@RequestParam(required = false) String title)  throws FileNotFoundException {
+    public ListOfMovies getTop250Filmes(@RequestParam(required = false) String title) throws FileNotFoundException {
     	//exemplo: http://localhost:8080/top250filmes?title=Psycho
+    	this.movies.items().clear();
+    	
     	ListOfMovies response = this.imDbApiClient.getBody();
     	if (Objects.nonNull(title)) {
             this.movies.items().addAll(response.items().stream()
@@ -38,7 +47,38 @@ public class ImdbController {
         return movies;
     }
     
-    record Movie(String title, String image, String year, String imDbRating){}
+    @PostMapping("/favorito/{filmeId}")
+	public String addFilmeFavorito(@PathVariable("filmeId") String filmeId) throws FileNotFoundException {
+		if(this.movies.items.isEmpty()) {
+			getTop250Filmes(null);
+		}
+		
+		Optional<Movie> movieOp =
+                this.movies.items.stream()
+                        .filter(movie -> movie.id().equalsIgnoreCase(filmeId))
+                        .findFirst();
+
+        if (movieOp.isPresent()) {
+            this.favoritos.items.add(movieOp.get());
+            return POST_SUCCESS;
+        } else {
+            return POST_FAIL;
+        }
+	}
+    
+    @GetMapping("/favoritos")
+    public ListOfMovies getFavoritos() throws FileNotFoundException {
+
+        if (!favoritos.items.isEmpty()) {
+            PrintWriter writer = new PrintWriter("src/main/resources/favoritos.html");
+            new HTMLGenerator(writer).generate(favoritos);
+            writer.close();
+        }
+
+        return favoritos;
+    }
+    
+    record Movie(String id, String title, String image, String year, String imDbRating){}
     record ListOfMovies(List<Movie> items){}
    
 }
