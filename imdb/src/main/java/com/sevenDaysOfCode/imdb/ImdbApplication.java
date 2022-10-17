@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
 import com.sevenDaysOfCode.imdb.controller.ImDbApiClient;
-import com.sevenDaysOfCode.imdb.controller.ImDbHTML;
 
 @SpringBootApplication
 public class ImdbApplication {
@@ -21,10 +20,6 @@ public class ImdbApplication {
 	@Bean
 	public ImDbApiClient imDbApiCLient() {
 		return new ImDbApiClient();
-	}
-	@Bean
-	public ImDbHTML imDbHTML() {
-		return new ImDbHTML();
 	}
 	
 }
